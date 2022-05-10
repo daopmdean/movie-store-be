@@ -52,6 +52,6 @@ func main() {
 	logger.Println("Server running on port", cfg.port)
 	err := server.ListenAndServe()
 	if err != nil {
-		log.Println(err)
+		logger.Println(err)
 	}
 }
