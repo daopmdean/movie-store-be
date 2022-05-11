@@ -14,7 +14,8 @@ func (app *application) getOneMovie(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil {
-		app.logger.Println(err)
+		app.errorJson(w, err)
+		return
 	}
 
 	movie := models.Movie{
