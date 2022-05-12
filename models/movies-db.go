@@ -19,7 +19,6 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 						FROM movies 
 						WHERE id = $1;
 	`
-
 	row := m.DB.QueryRowContext(ctx, query, id)
 
 	var movie Movie
@@ -39,6 +38,35 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	query = `SELECT mg.id, mg.movie_id, mg.genre_id, g.genre_name
+						FROM movies_genres mg
+						INNER JOIN genres g
+						ON mg.genre_id = g.id
+						WHERE movie_id = $1;
+	`
+	rows, err := m.DB.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	mgs := []MovieGenre{}
+	for rows.Next() {
+		mg := MovieGenre{}
+		err = rows.Scan(
+			&mg.ID,
+			&mg.MovieID,
+			&mg.GenreID,
+			&mg.Genre.GenreName,
+		)
+		if err != nil {
+			return nil, err
+		}
+		mgs = append(mgs, mg)
+	}
+
+	movie.MovieGenre = mgs
 
 	return &movie, nil
 }
