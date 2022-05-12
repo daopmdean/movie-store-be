@@ -11,7 +11,7 @@ type Movie struct {
 	Runtime     int          `json:"runtime"`
 	Rating      int          `json:"rating"`
 	MPAARating  string       `json:"mpaaRating"`
-	CreateAt    time.Time    `json:"createAt"`
-	UpdateAt    time.Time    `json:"updateAt"`
+	CreatedAt   time.Time    `json:"createdAt"`
+	UpdatedAt   time.Time    `json:"updatedAt"`
 	MovieGenre  []MovieGenre `json:"-"`
 }
