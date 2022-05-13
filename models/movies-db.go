@@ -39,13 +39,73 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 		return nil, err
 	}
 
-	query = `SELECT mg.id, mg.movie_id, mg.genre_id, g.genre_name
+	genres, err := m.getMovieGenres(movie.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	movie.MovieGenre = genres
+
+	return &movie, nil
+}
+
+func (m *DBModel) GetAll() ([]*Movie, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT id, title, description, year, release_date, runtime, rating,
+										mpaa_rating, created_at, updated_at
+						FROM movies 
+						ORDER BY title;
+	`
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var movies []*Movie
+	for rows.Next() {
+		var movie Movie
+		err = rows.Scan(
+			&movie.ID,
+			&movie.Title,
+			&movie.Description,
+			&movie.Year,
+			&movie.ReleaseDate,
+			&movie.Runtime,
+			&movie.Rating,
+			&movie.MPAARating,
+			&movie.CreatedAt,
+			&movie.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		genres, err := m.getMovieGenres(movie.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		movie.MovieGenre = genres
+		movies = append(movies, &movie)
+	}
+
+	return movies, nil
+}
+
+func (m *DBModel) getMovieGenres(movieId int) (map[int]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT mg.genre_id, g.genre_name
 						FROM movies_genres mg
-						INNER JOIN genres g
-						ON mg.genre_id = g.id
+							INNER JOIN genres g
+							ON mg.genre_id = g.id
 						WHERE movie_id = $1;
 	`
-	rows, err := m.DB.QueryContext(ctx, query, id)
+	rows, err := m.DB.QueryContext(ctx, query, movieId)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +115,6 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 	for rows.Next() {
 		mg := MovieGenre{}
 		err = rows.Scan(
-			&mg.ID,
-			&mg.MovieID,
 			&mg.GenreID,
 			&mg.Genre.GenreName,
 		)
@@ -66,11 +124,5 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 		genres[mg.GenreID] = mg.Genre.GenreName
 	}
 
-	movie.MovieGenre = genres
-
-	return &movie, nil
-}
-
-func (m *DBModel) GetAll() ([]*Movie, error) {
-	return nil, nil
+	return genres, nil
 }
