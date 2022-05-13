@@ -4,8 +4,8 @@ import "time"
 
 type MovieGenre struct {
 	ID        int       `json:"id"`
-	MovieID   string    `json:"movieId"`
-	GenreID   string    `json:"genreId"`
+	MovieID   int       `json:"movieId"`
+	GenreID   int       `json:"genreId"`
 	Genre     Genre     `json:"genre"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
