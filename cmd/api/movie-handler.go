@@ -28,8 +28,29 @@ func (app *application) getOneMovie(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *application) getAllMovie(w http.ResponseWriter, r *http.Request) {
+func (app *application) getAllMovies(w http.ResponseWriter, r *http.Request) {
 	movies, err := app.models.DB.GetAll()
+	if err != nil {
+		app.errorJson(w, err)
+		return
+	}
+
+	err = app.writeJson(w, http.StatusOK, movies, "movies")
+	if err != nil {
+		app.errorJson(w, err)
+	}
+}
+
+func (app *application) getAllMoviesByGenre(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+
+	genreId, err := strconv.Atoi(params.ByName("genre_id"))
+	if err != nil {
+		app.errorJson(w, err)
+		return
+	}
+
+	movies, err := app.models.DB.GetAll(genreId)
 	if err != nil {
 		app.errorJson(w, err)
 		return
