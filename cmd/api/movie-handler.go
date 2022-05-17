@@ -1,11 +1,19 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/daopmdean/movie-store-be/models"
 	"github.com/julienschmidt/httprouter"
 )
+
+type jsonRes struct {
+	Ok      bool   `json:"ok"`
+	Message string `json:"message"`
+}
 
 func (app *application) getOneMovie(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
@@ -62,15 +70,62 @@ func (app *application) getAllMoviesByGenre(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func (app *application) insertMovie(w http.ResponseWriter, r *http.Request) {
+type MoviePayload struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Year        string `json:"year"`
+	ReleaseDate string `json:"releaseDate"`
+	Runtime     string `json:"runtime"`
+	Rating      string `json:"rating"`
+	MPAARating  string `json:"mpaaRating"`
+}
 
+func (app *application) editMovie(w http.ResponseWriter, r *http.Request) {
+	var moviePayload MoviePayload
+
+	err := json.NewDecoder(r.Body).Decode(&moviePayload)
+	if err != nil {
+		app.errorJson(w, err)
+		return
+	}
+
+	app.logger.Println(moviePayload)
+
+	var movie models.Movie
+
+	movie.ID, _ = strconv.Atoi(moviePayload.ID)
+	movie.Title = moviePayload.Title
+	movie.Description = moviePayload.Description
+	movie.ReleaseDate, err = time.Parse("2006-01-02", moviePayload.ReleaseDate)
+	if err != nil {
+		app.errorJson(w, err)
+		return
+	}
+	movie.Year = movie.ReleaseDate.Year()
+	movie.Runtime, _ = strconv.Atoi(moviePayload.Runtime)
+	movie.Rating, _ = strconv.Atoi(moviePayload.Rating)
+	movie.MPAARating = moviePayload.MPAARating
+	movie.CreatedAt = time.Now()
+	movie.UpdatedAt = time.Now()
+
+	err = app.models.DB.InsertMovie(movie)
+	if err != nil {
+		app.errorJson(w, err)
+		return
+	}
+
+	ok := jsonRes{
+		Ok: true,
+	}
+
+	err = app.writeJson(w, http.StatusOK, ok, "response")
+	if err != nil {
+		app.errorJson(w, err)
+	}
 }
 
 func (app *application) deleteMovie(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (app *application) updateMovie(w http.ResponseWriter, r *http.Request) {
 
 }
 
