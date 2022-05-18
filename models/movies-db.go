@@ -221,3 +221,17 @@ func (m *DBModel) UpdateMovie(movie Movie) error {
 
 	return nil
 }
+
+func (m *DBModel) DeleteMovie(id int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	statement := `DELETE FROM movies 
+								WHERE id = $1`
+	_, err := m.DB.ExecContext(ctx, statement, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

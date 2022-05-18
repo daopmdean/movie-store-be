@@ -138,7 +138,24 @@ func (app *application) editMovie(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) deleteMovie(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	id, _ := strconv.Atoi(params.ByName("id"))
 
+	err := app.models.DB.DeleteMovie(id)
+	if err != nil {
+		app.errorJson(w, err)
+		return
+	}
+
+	ok := jsonRes{
+		Ok:      true,
+		Message: "Movie Deleted",
+	}
+
+	err = app.writeJson(w, http.StatusOK, ok, "response")
+	if err != nil {
+		app.errorJson(w, err)
+	}
 }
 
 func (app *application) searchMovie(w http.ResponseWriter, r *http.Request) {
