@@ -90,10 +90,7 @@ func (app *application) editMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.logger.Println(moviePayload)
-
 	var movie models.Movie
-
 	movie.ID, _ = strconv.Atoi(moviePayload.ID)
 	movie.Title = moviePayload.Title
 	movie.Description = moviePayload.Description
@@ -109,10 +106,25 @@ func (app *application) editMovie(w http.ResponseWriter, r *http.Request) {
 	movie.CreatedAt = time.Now()
 	movie.UpdatedAt = time.Now()
 
-	err = app.models.DB.InsertMovie(movie)
-	if err != nil {
-		app.errorJson(w, err)
-		return
+	if movie.ID == 0 {
+		err = app.models.DB.InsertMovie(movie)
+		if err != nil {
+			app.errorJson(w, err)
+			return
+		}
+	} else {
+		m, err := app.models.DB.Get(movie.ID)
+		if err != nil {
+			app.errorJson(w, err)
+			return
+		}
+		movie.CreatedAt = m.CreatedAt
+
+		err = app.models.DB.UpdateMovie(movie)
+		if err != nil {
+			app.errorJson(w, err)
+			return
+		}
 	}
 
 	ok := jsonRes{
