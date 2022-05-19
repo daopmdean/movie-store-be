@@ -40,7 +40,7 @@ func (app *application) signin(w http.ResponseWriter, r *http.Request) {
 
 	var claims = jwt.StandardClaims{
 		Id:        creds.Email,
-		ExpiresAt: time.Now().Add(5 * time.Minute).Unix(),
+		ExpiresAt: time.Now().Add(60 * time.Minute).Unix(),
 		Issuer:    "authen-jwt",
 		Audience:  "phamminhdao.com",
 	}

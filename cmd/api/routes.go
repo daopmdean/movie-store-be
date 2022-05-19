@@ -11,6 +11,7 @@ import (
 func (app *application) wrap(next http.Handler) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		ctx := context.WithValue(r.Context(), "params", p)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
@@ -28,9 +29,8 @@ func (app *application) routes() http.Handler {
 
 	secure := alice.New(app.checkToken)
 	router.POST("/v1/admin/editmovie", app.wrap(secure.ThenFunc(app.editMovie)))
-	router.GET("/v1/admin/deletemovie/:id", app.wrap(secure.ThenFunc(app.deleteMovie)))
-	// router.HandlerFunc(http.MethodPost, "/v1/admin/editmovie", app.editMovie)
-	// router.HandlerFunc(http.MethodGet, "/v1/admin/deletemovie/:id", app.deleteMovie)
+
+	router.HandlerFunc(http.MethodGet, "/v1/admin/deletemovie/:id", app.deleteMovie)
 
 	router.HandlerFunc(http.MethodPost, "/v1/admin/signin", app.signin)
 
