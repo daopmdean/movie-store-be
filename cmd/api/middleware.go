@@ -47,17 +47,17 @@ func (app *application) checkToken(next http.Handler) http.Handler {
 			return []byte(app.config.jwt.secret), nil
 		})
 		if err != nil {
-			app.errorJson(w, fmt.Errorf("Invalid token: %s", "Error when parsing"))
+			app.errorJson(w, fmt.Errorf("Invalid token: %s", "Error when parsing"), http.StatusForbidden)
 			return
 		}
 
 		if !token.Valid {
-			app.errorJson(w, fmt.Errorf("Invalid token"))
+			app.errorJson(w, fmt.Errorf("Invalid token"), http.StatusForbidden)
 			return
 		}
 
 		if claims.Audience != "phamminhdao.com" {
-			app.errorJson(w, fmt.Errorf("Invalid token: %s", "Invalid Audience"))
+			app.errorJson(w, fmt.Errorf("Invalid token: %s", "Invalid Audience"), http.StatusForbidden)
 			return
 		}
 
