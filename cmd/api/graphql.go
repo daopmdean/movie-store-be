@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -85,4 +87,32 @@ func (app *application) moviesGraphQL(w http.ResponseWriter, r *http.Request) {
 	query := string(q)
 
 	app.logger.Println(query)
+
+	rootQuery := graphql.ObjectConfig{
+		Name:   "RootQuery",
+		Fields: fields,
+	}
+	schemaConfig := graphql.SchemaConfig{
+		Query: graphql.NewObject(rootQuery),
+	}
+	schema, err := graphql.NewSchema(schemaConfig)
+	if err != nil {
+		app.errorJson(w, err)
+		app.logger.Println("Error at NewSchema", err)
+		return
+	}
+
+	params := graphql.Params{
+		Schema:        schema,
+		RequestString: query,
+	}
+	resp := graphql.Do(params)
+	if len(resp.Errors) > 0 {
+		app.errorJson(w, fmt.Errorf("Failed: %+v", resp.Errors))
+		return
+	}
+
+	j, _ := json.MarshalIndent(resp, "", "  ")
+	app.writeJson(w, http.StatusOK, j, "response")
+
 }
