@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/daopmdean/movie-store-be/models"
 	"github.com/graphql-go/graphql"
@@ -38,6 +39,27 @@ var fields = graphql.Fields{
 		Description: "Get all movies",
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			return movies, nil
+		},
+	},
+	"search": &graphql.Field{
+		Type:        graphql.NewList(movieType),
+		Description: "Search for movies by title",
+		Args: graphql.FieldConfigArgument{
+			"titleContains": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			var result []*models.Movie
+			search, ok := p.Args["titleContains"].(string)
+			if ok {
+				for _, movie := range movies {
+					if strings.Contains(strings.ToLower(movie.Title), strings.ToLower(search)) {
+						result = append(result, movie)
+					}
+				}
+			}
+			return result, nil
 		},
 	},
 }
