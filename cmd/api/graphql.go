@@ -113,6 +113,7 @@ func (app *application) moviesGraphQL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	j, _ := json.MarshalIndent(resp, "", "  ")
-	app.writeJson(w, http.StatusOK, j, "response")
-
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
 }
