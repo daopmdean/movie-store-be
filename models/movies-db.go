@@ -16,7 +16,7 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 	defer cancel()
 
 	query := `SELECT id, title, description, year, release_date, runtime, rating,
-										mpaa_rating, created_at, updated_at
+										mpaa_rating, created_at, updated_at, coalesce(poster, '') 
 						FROM movies 
 						WHERE id = $1;
 	`
@@ -35,6 +35,7 @@ func (m *DBModel) Get(id int) (*Movie, error) {
 		&movie.MPAARating,
 		&movie.CreatedAt,
 		&movie.UpdatedAt,
+		&movie.Poster,
 	)
 	if err != nil {
 		return nil, err
@@ -63,7 +64,7 @@ func (m *DBModel) GetAll(genres ...int) ([]*Movie, error) {
 	}
 
 	query := fmt.Sprintf(`SELECT id, title, description, year, release_date, runtime, rating,
-										mpaa_rating, created_at, updated_at
+										mpaa_rating, created_at, updated_at, coalesce(poster, '') 
 						FROM movies %s 
 						ORDER BY title;`, where)
 	rows, err := m.DB.QueryContext(ctx, query)
@@ -86,6 +87,7 @@ func (m *DBModel) GetAll(genres ...int) ([]*Movie, error) {
 			&movie.MPAARating,
 			&movie.CreatedAt,
 			&movie.UpdatedAt,
+			&movie.Poster,
 		)
 		if err != nil {
 			return nil, err
@@ -170,8 +172,8 @@ func (m *DBModel) InsertMovie(movie Movie) error {
 	defer cancel()
 
 	statement := `INSERT INTO movies (title, description, year, release_date, 
-									runtime, rating, mpaa_rating, created_at, updated_at) 
-								VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`
+									runtime, rating, mpaa_rating, created_at, updated_at, poster) 
+								VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`
 	_, err := m.DB.ExecContext(ctx, statement,
 		movie.Title,
 		movie.Description,
@@ -182,6 +184,7 @@ func (m *DBModel) InsertMovie(movie Movie) error {
 		movie.MPAARating,
 		movie.CreatedAt,
 		movie.UpdatedAt,
+		movie.Poster,
 	)
 	if err != nil {
 		return err
@@ -202,8 +205,9 @@ func (m *DBModel) UpdateMovie(movie Movie) error {
 									runtime = $5, 
 									rating = $6, 
 									mpaa_rating = $7, 
-									updated_at = $8
-								WHERE id = $9`
+									updated_at = $8,
+									poster = $9 
+								WHERE id = $10`
 	_, err := m.DB.ExecContext(ctx, statement,
 		movie.Title,
 		movie.Description,
@@ -213,6 +217,7 @@ func (m *DBModel) UpdateMovie(movie Movie) error {
 		movie.Rating,
 		movie.MPAARating,
 		movie.UpdatedAt,
+		movie.Poster,
 		movie.ID,
 	)
 	if err != nil {

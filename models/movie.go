@@ -13,5 +13,6 @@ type Movie struct {
 	MPAARating  string         `json:"mpaaRating"`
 	CreatedAt   time.Time      `json:"createdAt"`
 	UpdatedAt   time.Time      `json:"updatedAt"`
+	Poster      string         `json:"poster"`
 	MovieGenre  map[int]string `json:"genres"`
 }
