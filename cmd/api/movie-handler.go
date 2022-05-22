@@ -204,20 +204,24 @@ func getPoster(movie models.Movie) models.Movie {
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error Request", err)
 		return movie
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error Read Body", err)
 		return movie
 	}
 
 	var responseObject TheMovieDB
 
-	json.Unmarshal(bodyBytes, &responseObject)
+	err = json.Unmarshal(bodyBytes, &responseObject)
+	if err != nil {
+		log.Println("Error unmarshal", err)
+		return movie
+	}
 
 	if len(responseObject.Results) > 0 {
 		movie.Poster = responseObject.Results[0].PosterPath
